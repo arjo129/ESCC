@@ -31,13 +31,26 @@ LHSType = "";
 RHSType = "";
 var LHS, RHS, inherits;
 console.log("Allocated globals.... Begining primary analysis");
+var functionlock = new Array();
 estraverse.traverse(ast, {
     enter: function (node, parent) {
        // console.log(JSON.stringify(parent));
-        if (node.type === 'FunctionExpression' || node.type === 'FunctionDeclaration') {
+        if (node.type === 'FunctionExpression') {
+        }
+        if(node.type === 'FunctionDeclaration') {
         }
         if (node.type === 'Literal') {
           //  node.dtype = (typeof node.value).toString().toUppercase();
+        }
+        if (node.type === 'AssignmentExpression') {
+            if (node.operator != "=") {
+                if (node.operator == "+=") {
+                    node.left.dtype = "STRING|NUMERIC";
+                }
+                else {
+                    node.left.dtype = "NUMERIC";
+                }
+            }
         }
         if (node.type === 'BinaryExpression') {
             if (node.operator === "+") {
