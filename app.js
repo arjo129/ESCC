@@ -27,11 +27,14 @@ var variableData = function (eman) {
 var variables = new Array(); //This is the variable stack
 var parent = "";
 var context = "";
-LHSType = "";
-RHSType = "";
-var LHS, RHS, inherits;
 console.log("Allocated globals.... Begining primary analysis");
 var functionlock = new Array();
+/**
+ * Pass one, performs "type tagging"... 
+ * Implements following:
+ * - Operator based type inference
+ * - Inheritance based typing
+ */ 
 estraverse.traverse(ast, {
     enter: function (node, parent) {
        // console.log(JSON.stringify(parent));
@@ -40,47 +43,49 @@ estraverse.traverse(ast, {
         if(node.type === 'FunctionDeclaration') {
         }
         if (node.type === 'Literal') {
-          //  node.dtype = (typeof node.value).toString().toUppercase();
+          node.dtype = (typeof node.value).toString().toUpperCase();
         }
         if (node.type === 'AssignmentExpression') {
             if (node.operator != "=") {
                 if (node.operator == "+=") {
-                    node.left.dtype = "STRING|NUMERIC";
+                    node.left.dtype = "STRING|NUMBER";
                 }
                 else {
-                    node.left.dtype = "NUMERIC";
+                    node.left.dtype = "NUMBER";
                 }
             }
         }
         if (node.type === 'BinaryExpression') {
             if (node.operator === "+") {
-                inherits = "STRING|NUMERIC";
-                LHS = "STRING|NUMERIC";
-                RHS = "STRING|NUMERIC";
-                node.right.dtype = "STRING|NUMERIC";
-                node.left.dtype = "STRING|NUMERIC";
-                parent.dtype = "STRING|NUMERIC";
+                inherits = "STRING|NUMBER";
+                LHS = "STRING|NUMBER";
+                RHS = "STRING|NUMBER";
+                node.right.dtype = "STRING|NUMBER";
+                node.left.dtype = "STRING|NUMBER";
+                parent.dtype = "STRING|NUMBER";
             }
             else if (node.operator === "-" || node.operator === "*" || node.operator === "/" || node.operator === "%") {
-                node.right.dtype = "NUMERIC";
-                node.left.dtype = "NUMERIC";
-                parent.dtype = "NUMERIC";
+                node.right.dtype = "NUMBER";
+                node.left.dtype = "NUMBER";
+                parent.dtype = "NUMBER";
             }
             else if (node.operator=== "===" || node.operator === "=!" || node.operator === "==" || node.operator === "!=" || node.operator === "!==") {
                 parent.dtype = "BOOLEAN";
             }
             else if (node.operator === ">" || node.operator === "<" || node.operator === ">=" || node.operator === "=>" || node.operator === "<=" || node.operator === "=<") {
                 parent.dtype = "BOOLEAN";
-                node.right.dtype = "NUMERIC";
-                node.left.dtype = "NUMERIC";
+                node.right.dtype = "NUMBER";
+                node.left.dtype = "NUMBER";
             }
             else if (node.operator === "&" || node.operator === "<<" || node.operator === "^" || node.operator === ">>" || node.operator === "~" || node.operator === ">>>") {
-                parent.dtype = "NUMERIC";
-                node.right.dtype = "BOOLEAN|NUMERIC";
-                node.left.dtype = "BOOLEAN|NUMERIC";
+                parent.dtype = "NUMBER";
+                node.right.dtype = "BOOLEAN|NUMBER";
+                node.left.dtype = "BOOLEAN|NUMBER";
             }
             else if (node.operator === "&&" || node.operator === "||" || node.operator === "!") {
                 parent.dtype = "BOOLEAN";
+                node.right.dtype = "BOOLEAN";
+                node.left.dtype = "BOOLEAN";
             }
 
         }
@@ -94,4 +99,15 @@ estraverse.traverse(ast, {
 
     }
 });
+/**
+ * Pass two, resolves outstanding conflicts... 
+ * Implements following:
+ * - Comparator based type inference
+ */
+/**
+ * Pass three, translates ... 
+ * Implements following:
+ * - Operator based type inference
+ * - Inheritance based typing
+ */  
 console.log(JSON.stringify(ast));
