@@ -1,0 +1,14 @@
+{
+    "name": "ESCC",
+    "version": "0.0.0",
+    "description": "ESCC",
+    "main": "app.js",
+    "dependencies": [
+        "esprima",
+        "estraverse"
+   ], 
+    "author": {
+        "name": "Arjo Chakravarty",
+        "email": "arjo129@gmail.com"
+    }
+}
