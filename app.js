@@ -28,19 +28,39 @@ var variables = new Array(); //This is the variable stack
 var parent = "";
 var context = "";
 console.log("Allocated globals.... Begining primary analysis");
-var functionlock = new Array();
+var functionlock = false;
 /**
  * Pass one, performs "type tagging"... 
  * Implements following:
- * - Operator based type inference
- * - Inheritance based typing
+ * - Operator based type inference [completed]
  */ 
+var currentFunction;
+var properties = new Object();
 estraverse.traverse(ast, {
     enter: function (node, parent) {
-       // console.log(JSON.stringify(parent));
-        if (node.type === 'FunctionExpression') {
+        // console.log(JSON.stringify(parent));
+        if (node.type === 'ExpressionStatement') {
+            context = "";
         }
-        if(node.type === 'FunctionDeclaration') {
+        if (node.type === 'FunctionExpression') {
+            /**
+             * Attempts to acertain name and function usage (i.e is it a closure or a FUNCTION|OBJECT)
+             */ 
+            if (parent.type === "CallExpression" || parent.type === "BinaryExpression") {
+                node.dtype = "LambdaExpression";
+                currentFuntion = "*LAMBDAEXPR&";
+            }
+            else {
+                if (parent.type === "AssignmentExpression") {
+                    currentFunction = JSON.stringify(parent.left);
+                }
+                if (parent.type === "VariableDeclarator") {
+                    currentFunction = JSON.stringify(parent.left);
+                }
+            }
+        }
+        if (node.type === 'FunctionDeclaration') {
+            currentFunction = node.id.name;
         }
         if (node.type === 'Literal') {
           node.dtype = (typeof node.value).toString().toUpperCase();
@@ -89,12 +109,36 @@ estraverse.traverse(ast, {
             }
 
         }
+        if (node.type === 'UpdateExpression') {
+
+        }
+        if (node.type === 'ThisExpression') {
+            if (properties[currentFunction] === undefined) {
+                properties[currentFunction] = new Array();
+            }
+        }
     },
     leave: function (node, parent) {
         if (node.type == 'VariableDeclarator') { 
            console.log(node.id.name);
         }
-        if (node.type == 'FunctionExpression' || node.type == 'FunctionDeclaration') {
+        if (node.type == 'FunctionDeclaration') {
+            if (properties[node.id.name]!=undefined) {
+                node.dtype = "OBJECT";
+            }
+            else {
+                node.dtype = "FUNCTION";
+            }
+        }
+        if (node.type == 'FunctionExpression') {
+            if (parent.type === "AssignmentExpression" || parent.type === "VariableDeclarator") {
+                if (properties[JSON.stringify(parent.left)] != undefined) {
+                    node.dtype = "OBJECT";
+                }
+                else {
+                    node.dtype = "FUNCTION";
+                }
+            }
         }
 
     }
@@ -102,8 +146,17 @@ estraverse.traverse(ast, {
 /**
  * Pass two, resolves outstanding conflicts... 
  * Implements following:
- * - Comparator based type inference
+ * - Forms the variable/function stack.
  */
+estraverse.traverse(ast, {
+    enter: function (node, parent) {
+        if (node.type = "VariableDeclaration") {
+           // var name = node.id.name;
+            //variables.push();
+        }
+    }
+});
+
 /**
  * Pass three, translates ... 
  * Implements following:
