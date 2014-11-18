@@ -1,14 +1,16 @@
-﻿
-console.log('ESCC v0.0.1\r\nJS compiler for embedded devices\r\nGNU GPL 2013\r\nCopyleft Arjo Chakravarty');
+﻿/**
+ * Created by Arjo Chakravarty on 17/11/2014
+ */ 
+console.log('ESCC v0.0.1\r\nJS compiler for embedded devices\r\nMIT LICENSE 2013\r\nCopyleft Arjo Chakravarty');
 var fs = require('fs');
-var esprima = require('esprima');
+var esprima = require('esprima'); 
 var estraverse = require('estraverse');
-var filename = process.argv[2];
+var filename = process.argv[2]; 
 console.log('Processing', filename);
 var ast = esprima.parse(fs.readFileSync(filename));
 console.log(JSON.stringify(ast));
 
-/*BEGIN: Type analysis system - this subsystem performs type analysis and tries to create traditional c++ classes
+/**BEGIN: Type analysis system - this subsystem performs type analysis and tries to create traditional c++ classes
  *  converting prototypes to traditional classes. By attempting to do this we reduce the overhead for a compiler 
  *  and we can also check for rogue type conversions. It is not possible to do type analysis at run time given
  *  the memory constraints of the AVR
@@ -33,9 +35,11 @@ var functionlock = false;
  * Pass one, performs "type tagging"... 
  * Implements following:
  * - Operator based type inference [completed]
+ * - Method/Object differentiator [completed]
  */ 
 var currentFunction;
 var properties = new Object();
+var classtree = new Object();
 estraverse.traverse(ast, {
     enter: function (node, parent) {
         // console.log(JSON.stringify(parent));
@@ -61,6 +65,7 @@ estraverse.traverse(ast, {
         }
         if (node.type === 'FunctionDeclaration') {
             currentFunction = node.id.name;
+            classtree[currentFunction] = new variableData(node.id.name);
         }
         if (node.type === 'Literal') {
           node.dtype = (typeof node.value).toString().toUpperCase();
@@ -68,11 +73,19 @@ estraverse.traverse(ast, {
         if (node.type === 'AssignmentExpression') {
             if (node.operator != "=") {
                 if (node.operator == "+=") {
-                    node.left.dtype = "STRING|NUMBER";
+                    if (node.right.dtype = undefined) {
+                        node.left.dtype = "STRING|NUMBER";
+                    }
+                    else {
+                        node.left.dtype = node.right.dtype;
+                    }
                 }
                 else {
                     node.left.dtype = "NUMBER";
                 }
+            }
+            else {
+                node.left.dtype = node.right.dtype;
             }
         }
         if (node.type === 'BinaryExpression') {
@@ -113,30 +126,64 @@ estraverse.traverse(ast, {
 
         }
         if (node.type === 'ThisExpression') {
-            if (properties[currentFunction] === undefined) {
-                properties[currentFunction] = new Array();
+            if (currentFunction !== "*LAMBDAEXPR&") {
+                if (properties[currentFunction] === undefined) {
+                    if (parent.type = "MemberExpression") {
+                         classtree[currentFunction].properties.push(parent.property);
+                    }
+                    properties[currentFunction] = new Array();
+                }
+            }
+            else {
+                console.log("Error: Closure based objects are unsupported for now ;( sorry");
+                /**
+                 * Handle closure based objects
+                 */ 
             }
         }
     },
     leave: function (node, parent) {
+
         if (node.type == 'VariableDeclarator') { 
            console.log(node.id.name);
         }
         if (node.type == 'FunctionDeclaration') {
             if (properties[node.id.name]!=undefined) {
                 node.dtype = "OBJECT";
+               // classtree[node.id.name].typename = "OBJECT";
             }
             else {
                 node.dtype = "FUNCTION";
+               // classtree[node.id.name].typename = "FUNCTION";
+            }
+        }
+        if (node.type === 'AssignmentExpression') {
+            if (node.operator != "=") {
+                if (node.operator == "+=") {
+                    if (node.right.dtype = undefined) {
+                        node.left.dtype = "STRING|NUMBER";
+                    }
+                    else {
+                        node.left.dtype = node.right.dtype;
+                    }
+                }
+                else {
+                    node.left.dtype = "NUMBER";
+                }
+            }
+            else {
+                node.left.dtype = node.right.dtype;
             }
         }
         if (node.type == 'FunctionExpression') {
             if (parent.type === "AssignmentExpression" || parent.type === "VariableDeclarator") {
                 if (properties[JSON.stringify(parent.left)] != undefined) {
                     node.dtype = "OBJECT";
+                   // classtree[JSON.stringify(parent.left)].typename = "OBJECT";
                 }
                 else {
                     node.dtype = "FUNCTION";
+                    //classtree[JSON.stringify(parent.left)].typename = "FUNCTION";
                 }
             }
         }
@@ -164,3 +211,4 @@ estraverse.traverse(ast, {
  * - Inheritance based typing
  */  
 console.log(JSON.stringify(ast));
+console.log(JSON.stringify(classtree));
