@@ -5,6 +5,7 @@ console.log('ESCC v0.0.1\r\nJS compiler for embedded devices\r\nMIT LICENSE 2013
 var fs = require('fs');
 var esprima = require('esprima'); 
 var estraverse = require('estraverse');
+var escodegen = require('escodegen');
 var filename = process.argv[2]; 
 console.log('Processing', filename);
 var ast = esprima.parse(fs.readFileSync(filename));
@@ -56,10 +57,10 @@ estraverse.traverse(ast, {
             }
             else {
                 if (parent.type === "AssignmentExpression") {
-                    currentFunction = JSON.stringify(parent.left);
+                    currentFunction = escodegen.generate(parent.left);
                 }
                 if (parent.type === "VariableDeclarator") {
-                    currentFunction = JSON.stringify(parent.left);
+                    currentFunction = escodegen.generate(parent.left);
                 }
             }
         }
@@ -141,11 +142,16 @@ estraverse.traverse(ast, {
                  */ 
             }
         }
+        if (node.type === 'NewExpression') {
+            node.dtype = escodegen.generate(node.callee);
+        }
     },
     leave: function (node, parent) {
 
-        if (node.type == 'VariableDeclarator') { 
-           console.log(node.id.name);
+        if (node.type == 'VariableDeclarator') {
+            if (node.init != undefined) {
+                node.dtype = node.init.dtype;
+            }
         }
         if (node.type == 'FunctionDeclaration') {
             if (properties[node.id.name]!=undefined) {

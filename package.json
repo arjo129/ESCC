@@ -5,10 +5,12 @@
     "main": "app.js",
     "dependencies": [
         "esprima",
-        "estraverse"
-   ], 
+        "estraverse",
+        "escodegen"
+    ],
     "author": {
         "name": "Arjo Chakravarty",
         "email": "arjo129@gmail.com"
-    }
+    },
+    "repository": "https://github.com/arjo129/ESCC"
 }
