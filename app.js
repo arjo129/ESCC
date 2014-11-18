@@ -69,20 +69,20 @@ estraverse.traverse(ast, {
             classtree[currentFunction] = new variableData(node.id.name);
         }
         if (node.type === 'Literal') {
-          node.dtype = (typeof node.value).toString().toUpperCase();
+          node.dtype = (typeof node.value).toString();
         }
         if (node.type === 'AssignmentExpression') {
             if (node.operator != "=") {
                 if (node.operator == "+=") {
                     if (node.right.dtype = undefined) {
-                        node.left.dtype = "STRING|NUMBER";
+                        node.left.dtype = "String|NUMBER";
                     }
                     else {
                         node.left.dtype = node.right.dtype;
                     }
                 }
                 else {
-                    node.left.dtype = "NUMBER";
+                    node.left.dtype = "String|NUMBER";
                 }
             }
             else {
@@ -91,12 +91,12 @@ estraverse.traverse(ast, {
         }
         if (node.type === 'BinaryExpression') {
             if (node.operator === "+") {
-                inherits = "STRING|NUMBER";
-                LHS = "STRING|NUMBER";
-                RHS = "STRING|NUMBER";
-                node.right.dtype = "STRING|NUMBER";
-                node.left.dtype = "STRING|NUMBER";
-                parent.dtype = "STRING|NUMBER";
+                inherits = "String|NUMBER";
+                LHS = "String|NUMBER";
+                RHS = "String|NUMBER";
+                node.right.dtype = "String|NUMBER";
+                node.left.dtype = "String|NUMBER";
+                parent.dtype = "String|NUMBER";
             }
             else if (node.operator === "-" || node.operator === "*" || node.operator === "/" || node.operator === "%") {
                 node.right.dtype = "NUMBER";
@@ -147,7 +147,13 @@ estraverse.traverse(ast, {
         }
     },
     leave: function (node, parent) {
-
+        if (node.type === 'BinaryExpression') {
+            if (node.operator === "+") {
+                if (node.right.dtype == "String" || node.left.dtype == "String") {
+                    parent.dtype = "String";
+                }
+            }
+        }
         if (node.type == 'VariableDeclarator') {
             if (node.init != undefined) {
                 node.dtype = node.init.dtype;
@@ -155,7 +161,7 @@ estraverse.traverse(ast, {
         }
         if (node.type == 'FunctionDeclaration') {
             if (properties[node.id.name]!=undefined) {
-                node.dtype = "OBJECT";
+                node.dtype = "Object";
                // classtree[node.id.name].typename = "OBJECT";
             }
             else {
@@ -167,7 +173,7 @@ estraverse.traverse(ast, {
             if (node.operator != "=") {
                 if (node.operator == "+=") {
                     if (node.right.dtype = undefined) {
-                        node.left.dtype = "STRING|NUMBER";
+                        node.left.dtype = "String|NUMBER";
                     }
                     else {
                         node.left.dtype = node.right.dtype;
@@ -184,7 +190,7 @@ estraverse.traverse(ast, {
         if (node.type == 'FunctionExpression') {
             if (parent.type === "AssignmentExpression" || parent.type === "VariableDeclarator") {
                 if (properties[JSON.stringify(parent.left)] != undefined) {
-                    node.dtype = "OBJECT";
+                    node.dtype = "Object";
                    // classtree[JSON.stringify(parent.left)].typename = "OBJECT";
                 }
                 else {

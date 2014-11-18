@@ -3,7 +3,7 @@
 // Author: Arjo Chakravarty
 var h = 1 + b;
 c = h === 9;
-myString = "";
+myString = "hello";
 h++;
 function myObject() {
     this.myRandom = function () {
