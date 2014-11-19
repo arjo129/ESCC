@@ -48,6 +48,7 @@ var currscope = ["GLOBAL#@!/"];
 estraverse.traverse(ast, {
     enter: function (node, parent) {
         // console.log(JSON.stringify(parent));
+        
         if (node.type === 'ExpressionStatement') {
             context = "";
         }
@@ -68,8 +69,10 @@ estraverse.traverse(ast, {
                 if (parent.type === "VariableDeclarator") {
                     currentFunction = escodegen.generate(parent.left);
                 }
-                classtree[currentFunction] = new variableData(currentFunction); 
+                classtree[currentFunction] = new variableData(currentFunction);
+                currscope.push(currentFunction);
             }
+            
             //Will need fixing
             
         }
@@ -158,13 +161,19 @@ estraverse.traverse(ast, {
         }
     },
     leave: function (node, parent) {
+        if (node.scope === undefined) {
+           node.scope = currscope.toString();
+           // console.log(node.scope);
+        }
+       // console.log(node);
         if (node.type === 'ThisExpression') {
             if (currentFunction !== "*LAMBDAEXPR&") {
                 if (properties[currentFunction] === undefined) {
                     if (parent.type = "MemberExpression") {
                         classtree[currentFunction].properties.push(parent.property);
+                        
                     }
-                    properties[currentFunction] = new Array();
+                    //properties[currentFunction] = new Array();
                 }
             }
             else {
@@ -189,15 +198,16 @@ estraverse.traverse(ast, {
             }
         }
         if (node.type == 'FunctionDeclaration') {
-            node.parentF = currscope[currscope.length-1];
-            classtree[node.id.name].scope = currscope[currscope.length - 1];
+           
+            //node.parentF = currscope[currscope.length-1];
+            classtree[node.id.name].scope = currscope.toString();
             if (properties[node.id.name] != undefined) {
                 node.dtype = "Object";
                 classtree[node.id.name].typename = "OBJECT";
             }
             else {
                 node.dtype = "FUNCTION";//Should evaluate return
-                classtree[node.id.name].typename = "FUNCTION";
+                classtree[node.id.name].typename = "FUNCTION";//"FUNCTION";
             }
             currscope.pop();
             currentFunction = currscope[currscope.length - 1];
@@ -223,16 +233,25 @@ estraverse.traverse(ast, {
         if (node.type === 'FunctionExpression') {
           //  currentFunction = parentFunction;
             if (parent.type === "AssignmentExpression" || parent.type === "VariableDeclarator") {
-                node.parentF = currscope[currscope.length - 1];
+                node.parentF = currscope[currscope.length - 2];
                 if (properties[currentFunction] != undefined) {
                     node.dtype = "Object";
-                    classtree[currentFunction].typename = "OBJECT";
-                    classtree[currentFunction].scope = currscope[currscope.length - 1];
+                    try {
+                        classtree[currentFunction].typename = "OBJECT";
+                        classtree[currentFunction].scope = currscope.toString();
+                    } catch (e) {
+                        console.log(currentFunction);
+                    }
                 }
                 else {
                     node.dtype = "FUNCTION";
-                    classtree[currentFunction].typename = "FUNCTION";
-                    classtree[currentFunction].scope = currscope[currscope.length - 1];
+                    try {
+                        classtree[currentFunction].typename = "FUNCTION";
+                        classtree[currentFunction].scope = currscope.toString();
+                    }
+                    catch (e) {
+                        console.log(currentFunction);
+                    }
                 }
                 currscope.pop();
                 currentFunction = currscope[currscope.length - 1];
@@ -253,6 +272,7 @@ estraverse.traverse(ast, {
            // var name = node.id.name;
             //variables.push();
         }
+        
     }
 });
 
