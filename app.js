@@ -132,7 +132,7 @@ estraverse.traverse(ast, {
             if (currentFunction !== "*LAMBDAEXPR&") {
                 if (properties[currentFunction] === undefined) {
                     if (parent.type = "MemberExpression") {
-                         classtree[currentFunction].propertytype.push(parent.property.dtype);
+                         classtree[currentFunction].properties.push(parent.property);
                     }
                     properties[currentFunction] = new Array();
                 }
@@ -182,11 +182,11 @@ estraverse.traverse(ast, {
         if (node.type == 'FunctionDeclaration') {
             if (properties[node.id.name]!=undefined) {
                 node.dtype = "Object";
-               // classtree[node.id.name].typename = "OBJECT";
+                classtree[node.id.name].typename = "OBJECT";
             }
             else {
                 node.dtype = "FUNCTION";
-               // classtree[node.id.name].typename = "FUNCTION";
+                classtree[node.id.name].typename = "FUNCTION";
             }
         }
         if (node.type === 'AssignmentExpression') {
@@ -211,7 +211,7 @@ estraverse.traverse(ast, {
             if (parent.type === "AssignmentExpression" || parent.type === "VariableDeclarator") {
                 if (properties[JSON.stringify(parent.left)] != undefined) {
                     node.dtype = "Object";
-                   // classtree[JSON.stringify(parent.left)].typename = "OBJECT";
+                   //classtree[JSON.stringify(parent.left)].typename = "OBJECT";
                 }
                 else {
                     node.dtype = "FUNCTION";
