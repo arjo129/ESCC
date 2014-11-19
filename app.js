@@ -43,6 +43,7 @@ var currentFunction;
 var properties = new Object();
 var classtree = new Object();
 var variableTree = new Object();
+var parentFunction = "";
 estraverse.traverse(ast, {
     enter: function (node, parent) {
         // console.log(JSON.stringify(parent));
@@ -50,6 +51,7 @@ estraverse.traverse(ast, {
             context = "";
         }
         if (node.type === 'FunctionExpression') {
+            parentFunction = currentFunction;
             /**
              * Attempts to acertain name and function usage (i.e is it a closure or a FUNCTION|OBJECT)
              */ 
@@ -64,9 +66,13 @@ estraverse.traverse(ast, {
                 if (parent.type === "VariableDeclarator") {
                     currentFunction = escodegen.generate(parent.left);
                 }
+                classtree[currentFunction] = new variableData(currentFunction); 
             }
+            //Will need fixing
+            
         }
         if (node.type === 'FunctionDeclaration') {
+            parentFunction = currentFunction;
             currentFunction = node.id.name;
             classtree[currentFunction] = new variableData(node.id.name);
         }
@@ -180,14 +186,17 @@ estraverse.traverse(ast, {
             }
         }
         if (node.type == 'FunctionDeclaration') {
-            if (properties[node.id.name]!=undefined) {
+            node.parentF = parentFunction;
+            classtree[node.id.name].scope = parentFunction;
+            if (properties[node.id.name] != undefined) {
                 node.dtype = "Object";
                 classtree[node.id.name].typename = "OBJECT";
             }
             else {
-                node.dtype = "FUNCTION";
+                node.dtype = "FUNCTION";//Should evaluate return
                 classtree[node.id.name].typename = "FUNCTION";
             }
+            currentFunction = parentFunction;
         }
         if (node.type === 'AssignmentExpression') {
             if (node.operator != "=") {
@@ -207,17 +216,23 @@ estraverse.traverse(ast, {
                 node.left.dtype = node.right.dtype;
             }
         }
-        if (node.type == 'FunctionExpression') {
+        if (node.type === 'FunctionExpression') {
+          //  currentFunction = parentFunction;
             if (parent.type === "AssignmentExpression" || parent.type === "VariableDeclarator") {
-                if (properties[JSON.stringify(parent.left)] != undefined) {
+                node.parentF = parentFunction;
+                if (properties[currentFunction] != undefined) {
                     node.dtype = "Object";
-                   //classtree[JSON.stringify(parent.left)].typename = "OBJECT";
+                    classtree[currentFunction].typename = "OBJECT";
+                    classtree[currentFunction].scope = parentFunction;
                 }
                 else {
                     node.dtype = "FUNCTION";
-                    //classtree[JSON.stringify(parent.left)].typename = "FUNCTION";
+                    classtree[currentFunction].typename = "FUNCTION";
+                    classtree[currentFunction].scope = parentFunction;
                 }
+                currentFunction = parentFunction;
             }
+            
         }
 
     }
