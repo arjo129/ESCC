@@ -13,6 +13,6 @@ function myObject() {
     }
 }
 function myFunction(callback) { }
-//myFunction(function () {
-//});
+myFunction(function () {
+});
 var exampleObj = new myObject();
