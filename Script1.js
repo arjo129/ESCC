@@ -12,7 +12,6 @@ function myObject() {
         this.moreFunctions = function(){}
     }
 }
-function myFunction(callback) { }
-myFunction(function () {
-});
+function myFunction(callback) {}
+myFunction(function () {});
 var exampleObj = new myObject();

@@ -26,7 +26,7 @@ var variableData = function (eman) {
     this.checkIfPropertyExists = function (property) {
         
     }
-    this.scope = new String();
+    this.scope = new Array();
 };
 var variables = new Array(); //This is the variable stack
 var parent = "";
@@ -59,7 +59,7 @@ estraverse.traverse(ast, {
              */ 
             if (parent.type === "CallExpression" || parent.type === "BinaryExpression") {
                 node.dtype = "LambdaExpression";
-                currentFuntion = "*LAMBDAEXPR&";
+                currentFunction = "*LAMBDAEXPR&";
                 currscope.push(currentFunction);
             }
             else {
@@ -162,7 +162,7 @@ estraverse.traverse(ast, {
     },
     leave: function (node, parent) {
         if (node.scope === undefined) {
-           node.scope = currscope.toString();
+            node.scope = currscope.toString();
            // console.log(node.scope);
         }
        // console.log(node);
@@ -253,10 +253,9 @@ estraverse.traverse(ast, {
                         console.log(currentFunction);
                     }
                 }
-                currscope.pop();
-                currentFunction = currscope[currscope.length - 1];
             }
-            
+            currscope.pop();
+            currentFunction = currscope[currscope.length - 1];
         }
 
     }
