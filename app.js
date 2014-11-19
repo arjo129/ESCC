@@ -8,7 +8,7 @@ var estraverse = require('estraverse');
 var escodegen = require('escodegen');
 var filename = process.argv[2]; 
 console.log('Processing', filename);
-var ast = esprima.parse(fs.readFileSync(filename));
+var ast = esprima.parse(fs.readFileSync(filename)/*, { loc: true }*/);
 console.log(JSON.stringify(ast));
 
 /**BEGIN: Type analysis system - this subsystem performs type analysis and tries to create traditional c++ classes
@@ -21,7 +21,8 @@ var variableData = function (eman) {
     this.name = eman;
     this.typename = "unknown";
     this.properties = new Array();
-    this.propetytype = new Array();
+    this.propertytype = new Array();
+    this.references = new Array();
     this.checkIfPropertyExists = function (property) {
         
     }
@@ -41,6 +42,7 @@ var functionlock = false;
 var currentFunction;
 var properties = new Object();
 var classtree = new Object();
+var variableTree = new Object();
 estraverse.traverse(ast, {
     enter: function (node, parent) {
         // console.log(JSON.stringify(parent));
@@ -130,7 +132,7 @@ estraverse.traverse(ast, {
             if (currentFunction !== "*LAMBDAEXPR&") {
                 if (properties[currentFunction] === undefined) {
                     if (parent.type = "MemberExpression") {
-                         classtree[currentFunction].properties.push(parent.property);
+                         classtree[currentFunction].propertytype.push(parent.property.dtype);
                     }
                     properties[currentFunction] = new Array();
                 }
@@ -147,6 +149,22 @@ estraverse.traverse(ast, {
         }
     },
     leave: function (node, parent) {
+        if (node.type === 'ThisExpression') {
+            if (currentFunction !== "*LAMBDAEXPR&") {
+                if (properties[currentFunction] === undefined) {
+                    if (parent.type = "MemberExpression") {
+                        classtree[currentFunction].properties.push(parent.property);
+                    }
+                    properties[currentFunction] = new Array();
+                }
+            }
+            else {
+                console.log("Error: Closure based objects are unsupported for now ;( sorry");
+                /**
+                 * Handle closure based objects
+                 */ 
+            }
+        }
         if (node.type === 'BinaryExpression') {
             if (node.operator === "+") {
                 if (node.right.dtype == "String" || node.left.dtype == "String") {
@@ -157,6 +175,8 @@ estraverse.traverse(ast, {
         if (node.type == 'VariableDeclarator') {
             if (node.init != undefined) {
                 node.dtype = node.init.dtype;
+                variableTree[node.id.name] = new variableData(node.id.name);
+                variableTree[node.id.name].typename = node.init.dtype;
             }
         }
         if (node.type == 'FunctionDeclaration') {
