@@ -8,7 +8,7 @@ var estraverse = require('estraverse');
 var escodegen = require('escodegen');
 var filename = process.argv[2]; 
 console.log('Processing', filename);
-var ast = esprima.parse(fs.readFileSync(filename)/*, { loc: true }*/);
+var ast = esprima.parse(fs.readFileSync(filename), { loc: true });
 console.log(JSON.stringify(ast));
 
 /**BEGIN: Type analysis system - this subsystem performs type analysis and tries to create traditional c++ classes
@@ -45,6 +45,7 @@ var classtree = new Object();
 var variableTree = new Object();
 var parentFunction = "";
 var currscope = ["GLOBAL#@!/"];
+var blockScope = ["GLOBAL#@!/"];
 estraverse.traverse(ast, {
     enter: function (node, parent) {
         // console.log(JSON.stringify(parent));
