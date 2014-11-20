@@ -46,10 +46,15 @@ var variableTree = new Object();
 var parentFunction = "";
 var currscope = ["GLOBAL#@!/"];
 var blockScope = ["GLOBAL#@!/"];
+var currAddrScope = [];
+var currAddrScopeType =[];
 estraverse.traverse(ast, {
     enter: function (node, parent) {
         // console.log(JSON.stringify(parent));
-        
+        if (node.type == 'BlockStatement') {
+            blockScope.push("B");
+        }
+
         if (node.type === 'ExpressionStatement') {
             context = "";
         }
@@ -62,16 +67,18 @@ estraverse.traverse(ast, {
                 node.dtype = "LambdaExpression";
                 currentFunction = "*LAMBDAEXPR&";
                 currscope.push(currentFunction);
+                blockScope.push(currentFunction);
             }
             else {
                 if (parent.type === "AssignmentExpression") {
                     currentFunction = escodegen.generate(parent.left);
                 }
                 if (parent.type === "VariableDeclarator") {
-                    currentFunction = escodegen.generate(parent.left);
+                    currentFunction = parent.id.name;
                 }
                 classtree[currentFunction] = new variableData(currentFunction);
                 currscope.push(currentFunction);
+                blockScope.push(currentFunction);
             }
             
             //Will need fixing
@@ -84,7 +91,7 @@ estraverse.traverse(ast, {
             classtree[currentFunction] = new variableData(node.id.name);
         }
         if (node.type === 'Literal') {
-          node.dtype = (typeof node.value).toString();
+            node.dtype = (typeof node.value).toString();
         }
         if (node.type === 'AssignmentExpression') {
             if (node.operator != "=") {
@@ -259,7 +266,7 @@ estraverse.traverse(ast, {
             currentFunction = currscope[currscope.length - 1];
         }
         if (node.type === 'MemberExpression' && node.computed == true) {
-            node.property.dtype = "String|Number";
+            node.property.dtype = "String|NUMBER";
         }
     }
 });
@@ -284,4 +291,4 @@ estraverse.traverse(ast, {
  * - Inheritance based typing
  */  
 console.log(JSON.stringify(ast));
-console.log(JSON.stringify(classtree));
+console.log(variableTree);

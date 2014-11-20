@@ -17,3 +17,4 @@ myFunction(function () {});
 var exampleObj = new myObject();
 var bob = new Array();
 bob[h];
+var specialFunction = function(arg){return arg}
