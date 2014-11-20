@@ -15,3 +15,5 @@ function myObject() {
 function myFunction(callback) {}
 myFunction(function () {});
 var exampleObj = new myObject();
+var bob = new Array();
+bob[h];

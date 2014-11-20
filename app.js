@@ -170,7 +170,7 @@ estraverse.traverse(ast, {
         if (node.type === 'ThisExpression') {
             if (currentFunction !== "*LAMBDAEXPR&") {
                 if (properties[currentFunction] === undefined) {
-                    if (parent.type = "MemberExpression") {
+                    if (parent.type == "MemberExpression") {
                         classtree[currentFunction].properties.push(parent.property);
                         
                     }
@@ -258,7 +258,9 @@ estraverse.traverse(ast, {
             currscope.pop();
             currentFunction = currscope[currscope.length - 1];
         }
-
+        if (node.type === 'MemberExpression' && node.computed == true) {
+            node.property.dtype = "String|Number";
+        }
     }
 });
 /**
@@ -272,7 +274,6 @@ estraverse.traverse(ast, {
            // var name = node.id.name;
             //variables.push();
         }
-        
     }
 });
 
