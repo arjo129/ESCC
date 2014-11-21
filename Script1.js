@@ -7,11 +7,13 @@ c = h === 9;
 myString = "hello";
 h++;
 function myObject() {
+    var chicken = 3;
     this.intProperty = 1;
     this.myRandom = function () {
         this.moreFunctions = function(){}
     }
 }
+c = 3;
 function myFunction(callback) {}
 myFunction(function () {});
 var exampleObj = new myObject();

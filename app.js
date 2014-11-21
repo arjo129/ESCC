@@ -52,7 +52,7 @@ estraverse.traverse(ast, {
     enter: function (node, parent) {
         // console.log(JSON.stringify(parent));
         if (node.type == 'BlockStatement') {
-            blockScope.push("B");
+            blockScope.push("B"+JSON.stringify(node.loc));
         }
 
         if (node.type === 'ExpressionStatement') {
@@ -203,6 +203,7 @@ estraverse.traverse(ast, {
                 node.dtype = node.init.dtype;
                 variableTree[node.id.name] = new variableData(node.id.name);
                 variableTree[node.id.name].typename = node.init.dtype;
+                variableTree[node.id.name].scope = currscope.toString();
             }
         }
         if (node.type == 'FunctionDeclaration') {
@@ -221,6 +222,7 @@ estraverse.traverse(ast, {
             currentFunction = currscope[currscope.length - 1];
         }
         if (node.type === 'AssignmentExpression') {
+            
             if (node.operator != "=") {
                 if (node.operator == "+=") {
                     if (node.right.dtype = undefined) {
@@ -236,6 +238,9 @@ estraverse.traverse(ast, {
             }
             else {
                 node.left.dtype = node.right.dtype;
+                if (node.left.type == "Identifier") {
+                    variableTree[node.left.name]
+                }
             }
         }
         if (node.type === 'FunctionExpression') {
@@ -267,6 +272,15 @@ estraverse.traverse(ast, {
         }
         if (node.type === 'MemberExpression' && node.computed == true) {
             node.property.dtype = "String|NUMBER";
+        }
+        if (node.type === "Identifier" && parent.type === "AssignmentExpression") {
+            if (variableTree[node.name] === undefined) {
+                variableTree[node.name] = new variableData(node.name);
+                variableTree[node.name].scope = blockScope.toString();
+            }
+        }
+        if (node.type === "BlockStatement") {
+            blockScope.pop();
         }
     }
 });
