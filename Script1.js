@@ -1,7 +1,7 @@
 // JavaScript test page 
 // 17 Nov 2014
 // Author: Arjo Chakravarty
-var h = 1 + b;
+var h = 1 + 5;
 
 c = h === 9;
 myString = "hello";
@@ -11,6 +11,9 @@ function myObject() {
     this.intProperty = 1;
     this.myRandom = function () {
         this.moreFunctions = function(){}
+    }
+    if (chicken === 3) {
+        i = 4;
     }
 }
 c = 3;

@@ -52,7 +52,7 @@ estraverse.traverse(ast, {
     enter: function (node, parent) {
         // console.log(JSON.stringify(parent));
         if (node.type == 'BlockStatement') {
-            blockScope.push("B"+JSON.stringify(node.loc));
+            blockScope.push(JSON.stringify(node.loc));
         }
 
         if (node.type === 'ExpressionStatement') {
@@ -109,6 +109,7 @@ estraverse.traverse(ast, {
             }
             else {
                 node.left.dtype = node.right.dtype;
+                node.dtype = node.left.dtype;
             }
         }
         if (node.type === 'BinaryExpression') {
@@ -146,7 +147,7 @@ estraverse.traverse(ast, {
 
         }
         if (node.type === 'UpdateExpression') {
-
+            node.dtype = "number";
         }
         if (node.type === 'ThisExpression') {
             if (currentFunction !== "*LAMBDAEXPR&") {
@@ -238,8 +239,15 @@ estraverse.traverse(ast, {
             }
             else {
                 node.left.dtype = node.right.dtype;
+                parent.dtype = node.right.dtype;
                 if (node.left.type == "Identifier") {
-                    variableTree[node.left.name]
+                    if (variableTree[node.left.name] === undefined) {
+                        variableTree[node.left.name] = new variableData(node.left.name);
+                        variableTree[node.left.name].typename = node.right.dtype;
+                    }
+                    else {
+                        variableTree[node.left.name].typename = node.right.dtype;
+                    }
                 }
             }
         }
@@ -273,12 +281,7 @@ estraverse.traverse(ast, {
         if (node.type === 'MemberExpression' && node.computed == true) {
             node.property.dtype = "String|NUMBER";
         }
-        if (node.type === "Identifier" && parent.type === "AssignmentExpression") {
-            if (variableTree[node.name] === undefined) {
-                variableTree[node.name] = new variableData(node.name);
-                variableTree[node.name].scope = blockScope.toString();
-            }
-        }
+       
         if (node.type === "BlockStatement") {
             blockScope.pop();
         }
@@ -304,5 +307,5 @@ estraverse.traverse(ast, {
  * - Operator based type inference
  * - Inheritance based typing
  */  
-console.log(JSON.stringify(ast));
+//console.log(JSON.stringify(ast));
 console.log(variableTree);
