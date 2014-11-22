@@ -42,12 +42,12 @@ var functionlock = false;
 var currentFunction;
 var properties = new Object();
 var classtree = new Object();
-var variableTree = new Object();
+var variableTree = new Object(); 
 var parentFunction = "";
 var currscope = ["GLOBAL#@!/"];
 var blockScope = ["GLOBAL#@!/"];
-var currAddrScope = [];
-var currAddrScopeType =[];
+var currAddrScope = ["GLOBAL#@!/"];
+var currAddrScopeType =["GLOBAL#@!/"];
 estraverse.traverse(ast, {
     enter: function (node, parent) {
         // console.log(JSON.stringify(parent));
@@ -244,6 +244,7 @@ estraverse.traverse(ast, {
                     if (variableTree[node.left.name] === undefined) {
                         variableTree[node.left.name] = new variableData(node.left.name);
                         variableTree[node.left.name].typename = node.right.dtype;
+                        variableTree[node.left.name].scope = blockScope.toString();
                     }
                     else {
                         variableTree[node.left.name].typename = node.right.dtype;
