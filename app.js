@@ -9,7 +9,7 @@ var escodegen = require('escodegen');
 var filename = process.argv[2]; 
 console.log('Processing', filename);
 var ast = esprima.parse(fs.readFileSync(filename), { loc: true });
-console.log(JSON.stringify(ast));
+//console.log(JSON.stringify(ast));
 
 /**BEGIN: Type analysis system - this subsystem performs type analysis and tries to create traditional c++ classes
  *  converting prototypes to traditional classes. By attempting to do this we reduce the overhead for a compiler 
@@ -28,7 +28,6 @@ var variableData = function (eman) {
     }
     this.scope = new Array();
 };
-var variables = new Array(); //This is the variable stack
 var parent = "";
 var context = "";
 console.log("Allocated globals.... Begining primary analysis");
@@ -39,16 +38,16 @@ var functionlock = false;
  * - Operator based type inference [completed]
  * - Method/Object differentiator [completed]
  */ 
-var currentFunction;
-var properties = new Object();
-var classtree = new Object();
-var variableTree = new Object(); 
+var currentFunction; //TODO: Remove this redundant peice of crap
+var properties = new Object(); 
+var classtree = new Object(); //Hidden class stack
+var variableTree = new Object(); //variable stack
 var parentFunction = "";
 var currscope = ["GLOBAL#@!/"];
 var blockScope = ["GLOBAL#@!/"];
 var currAddrScope = ["GLOBAL#@!/"];
 var currAddrScopeType =["GLOBAL#@!/"];
-estraverse.traverse(ast, {
+estraverse.traverse(ast, {  
     enter: function (node, parent) {
         // console.log(JSON.stringify(parent));
         if (node.type == 'BlockStatement') {
@@ -168,13 +167,17 @@ estraverse.traverse(ast, {
         if (node.type === 'NewExpression') {
             node.dtype = escodegen.generate(node.callee);
         }
+        if (node.type === 'MemberExpression') {
+            if(node.object.type!=='ThisExpression'){ currAddrScope.push(node.object);}
+            
+        }
     },
     leave: function (node, parent) {
         if (node.scope === undefined) {
             node.scope = currscope.toString();
            // console.log(node.scope);
         }
-       // console.log(node);
+        // console.log(node);
         if (node.type === 'ThisExpression') {
             if (currentFunction !== "*LAMBDAEXPR&") {
                 if (properties[currentFunction] === undefined) {
@@ -208,7 +211,7 @@ estraverse.traverse(ast, {
             }
         }
         if (node.type == 'FunctionDeclaration') {
-           
+            
             //node.parentF = currscope[currscope.length-1];
             classtree[node.id.name].scope = currscope.toString();
             if (properties[node.id.name] != undefined) {
@@ -253,7 +256,7 @@ estraverse.traverse(ast, {
             }
         }
         if (node.type === 'FunctionExpression') {
-          //  currentFunction = parentFunction;
+            //  currentFunction = parentFunction;
             if (parent.type === "AssignmentExpression" || parent.type === "VariableDeclarator") {
                 node.parentF = currscope[currscope.length - 2];
                 if (properties[currentFunction] != undefined) {
@@ -281,8 +284,9 @@ estraverse.traverse(ast, {
         }
         if (node.type === 'MemberExpression' && node.computed == true) {
             node.property.dtype = "String|NUMBER";
+            currAddrScope.pop();
         }
-       
+        
         if (node.type === "BlockStatement") {
             blockScope.pop();
         }
@@ -308,5 +312,5 @@ estraverse.traverse(ast, {
  * - Operator based type inference
  * - Inheritance based typing
  */  
-//console.log(JSON.stringify(ast));
-console.log(variableTree);
+console.log(JSON.stringify(ast));
+//console.log(classtree);

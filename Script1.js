@@ -16,10 +16,15 @@ function myObject() {
         i = 4;
     }
 }
+var myFunc = function(){}
 c = 3;
 function myFunction(callback) {}
 myFunction(function () {});
 var exampleObj = new myObject();
 var bob = new Array();
+var JSONObj = {
+    property1: 1,
+    method1: function(){}
+}
 bob[h];
 var specialFunction = function(arg){return arg}
