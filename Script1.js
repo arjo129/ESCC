@@ -24,7 +24,7 @@ var exampleObj = new myObject();
 var bob = new Array();
 var JSONObj = {
     property1: 1,
-    method1: function(){}
+    method1: function(){ return null; }
 }
 bob[h];
 var specialFunction = function(arg){return arg}

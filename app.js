@@ -90,6 +90,9 @@ estraverse.traverse(ast, {
             classtree[currentFunction] = new variableData(node.id.name);
         }
         if (node.type === 'Literal') {
+            /**
+             * Todo: toggle case or smth.
+             */ 
             node.dtype = (typeof node.value).toString();
         }
         if (node.type === 'AssignmentExpression') {
@@ -109,6 +112,9 @@ estraverse.traverse(ast, {
             else {
                 node.left.dtype = node.right.dtype;
                 node.dtype = node.left.dtype;
+                if (node.right.dtype === "ObjectExpression") {
+                    classtree[escodegen.generate(node.left)] = new variableData(escodegen.generate(node.left));
+                }
             }
         }
         if (node.type === 'BinaryExpression') {
@@ -171,6 +177,12 @@ estraverse.traverse(ast, {
             if(node.object.type!=='ThisExpression'){ currAddrScope.push(node.object);}
             
         }
+        if (node.type === 'ArrayExpression') {
+            node.dtype = "Array";
+        }
+        if (node.type === 'ObjectExpression') {
+            node.dtype = "OBJECT";
+        }
     },
     leave: function (node, parent) {
         if (node.scope === undefined) {
@@ -206,8 +218,21 @@ estraverse.traverse(ast, {
             if (node.init != undefined) {
                 node.dtype = node.init.dtype;
                 variableTree[node.id.name] = new variableData(node.id.name);
-                variableTree[node.id.name].typename = node.init.dtype;
+                if (node.init.type === "ObjectExpression") {
+                    classtree[node.id.name] = new variableData(node.id.name);
+                    classtree[node.id.name].typename = "OBJECT";
+                    for (i =0; i < node.init.properties.length; i++) {
+                        classtree[node.id.name].properties.push(node.init.properties[i].key.name);
+                        classtree[node.id.name].properties.push(node.init.properties[i].value.dtype);
+                    }
+                    variableTree[node.id.name].typename = node.id.name;
+                    node.dtype = node.id.name;
+                }
+                else {
+                    variableTree[node.id.name].typename = node.init.dtype;
+                }
                 variableTree[node.id.name].scope = currscope.toString();
+
             }
         }
         if (node.type == 'FunctionDeclaration') {
@@ -252,6 +277,9 @@ estraverse.traverse(ast, {
                     else {
                         variableTree[node.left.name].typename = node.right.dtype;
                     }
+                }
+                if (node.right.dtype === "ObjectExpression") {
+                    classtree[escodegen.generate(node.left)] = new variableData(escodegen.generate(node.left));
                 }
             }
         }
@@ -312,5 +340,8 @@ estraverse.traverse(ast, {
  * - Operator based type inference
  * - Inheritance based typing
  */  
-console.log(JSON.stringify(ast));
-//console.log(classtree);
+//console.log(JSON.stringify(ast));
+console.log("Found these hidden classes");
+console.log(classtree);
+console.log("Found these variables");
+console.log(variableTree);
